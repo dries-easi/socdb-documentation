@@ -1,0 +1,328 @@
+openapi: 3.0.0
+info:
+  title: EasiSOC-DB API
+  description: API for managing SOC rules and companies
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+components:
+  schemas:
+    Rule:
+      type: object
+      required:
+        - name
+        - description
+        - category
+        - priority
+        - leql_query
+      properties:
+        name:
+          type: string
+          description: Name of the rule
+        description:
+          type: string
+          description: Description of the rule
+        category:
+          type: string
+          description: Category of the rule
+        priority:
+          type: string
+          description: Priority of the rule
+        leql_query:
+          type: string
+          description: LEQL query for the rule
+        source:
+          type: string
+          description: Source of the rule
+          required: false
+
+    Company:
+      type: object
+      required:
+        - name
+        - api_key
+      properties:
+        name:
+          type: string
+          description: Name of the company
+        api_key:
+          type: string
+          description: API key for the company
+
+    Query:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: LEQL query to validate
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: string
+          description: Success message
+
+paths:
+  /:
+    get:
+      summary: Get API information
+      description: Returns basic information about the API
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: EasiSOC-DB
+                  version:
+                    type: string
+                    example: 0.1
+
+  /rules:
+    get:
+      summary: List all rules
+      description: Returns a list of all rules
+      responses:
+        '200':
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rule'
+    
+    post:
+      summary: Create a new rule
+      description: Creates a new rule with the provided information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      responses:
+        '200':
+          description: Rule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rule'
+
+  /rules/{rule_id}:
+    parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The rule identifier
+    
+    get:
+      summary: Get a rule by ID
+      description: Returns a specific rule by its ID
+      responses:
+        '200':
+          description: Rule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rule'
+    
+    put:
+      summary: Update a rule
+      description: Updates an existing rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      responses:
+        '200':
+          description: Rule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    
+    delete:
+      summary: Delete a rule
+      description: Deletes a specific rule
+      responses:
+        '204':
+          description: Rule deleted successfully
+
+  /rules/category/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The rule category
+    
+    get:
+      summary: Get rules by category
+      description: Returns all rules in a specific category
+      responses:
+        '200':
+          description: List of rules in category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rule'
+
+  /rules/{rule_id}/push:
+    parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The rule identifier
+    
+    post:
+      summary: Push a rule to InsightIDR
+      description: Pushes a specific rule to InsightIDR
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_id:
+                  type: string
+                  description: Company ID to push the rule to
+      responses:
+        '200':
+          description: Rule pushed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /companies:
+    get:
+      summary: List all companies
+      description: Returns a list of all companies
+      responses:
+        '200':
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+    
+    post:
+      summary: Create a new company
+      description: Creates a new company with the provided information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /companies/{company_id}:
+    parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The company identifier
+    
+    delete:
+      summary: Delete a company
+      description: Deletes a specific company
+      responses:
+        '204':
+          description: Company deleted successfully
+
+  /companies/{company_id}/push:
+    parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The company identifier
+    
+    post:
+      summary: Push company rules to InsightIDR
+      description: Pushes all rules for a company to InsightIDR
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priority:
+                  type: string
+                  description: Priority filter for rules
+      responses:
+        '200':
+          description: Rules pushed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /admin/git/push:
+    post:
+      summary: Push rules to Github
+      description: Pushes all rules to the Github repository
+      responses:
+        '200':
+          description: Rules pushed to Github successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /query/validate:
+    post:
+      summary: Validate LEQL query
+      description: Validates a LEQL query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Query'
+      responses:
+        '200':
+          description: Query validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success, failure]
+                    description: Validation result
