@@ -11,4 +11,10 @@ In this document the different epics will be broken down in multiple user storie
 
 ## Epic: Customer Management
 - As an admin, I can onboard new customers.
-- As an admin, I want a default ruleset I can push to a customer.
+- As a security engineer, I can push a default ruleset to a customer.
+- As a security engineer, I can push default rules that use environment variables.
+- As a security analyst, I can push a specific rule to a specific customer.
+- As a security analyst, I can push multiple rules to a specific customer based on severity.
+- As a security analyst, I can push multiple rules to a specific customer based on category.
+- As a security analyst, I can see what customers a specific rule is pushed to.
+- As a security analyst, I have a dashboard for every customer.
